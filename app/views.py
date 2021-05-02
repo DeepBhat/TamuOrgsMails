@@ -33,13 +33,9 @@ def update_database():
     # read the table data
     orgs_list_raw = pd.read_html(url)[0][1].tolist()
     orgs_list_recognized = list(filter(lambda org_text: "Not Recognized" not in org_text and "Exempt from Recognition" not in org_text, orgs_list_raw))
-    print(len(orgs_list_recognized))
     orgs_list_str = "".join(orgs_list_recognized)
-    print(len(orgs_list_str))
+
     print("Got recognized orgs...")
-    # with open("recog.txt","w") as f:
-    #     f.write(orgs_list_str)
-    print(orgs_list_str)
 
     # remove all the orgs in the database that are not recognized
     del_objs = Organization.objects.exclude(name__in=orgs_list_str)
