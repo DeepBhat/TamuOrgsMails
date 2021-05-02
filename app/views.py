@@ -128,11 +128,11 @@ async def update(request):
     print("Got recognized orgs...")
 
     # remove all the orgs in the database that are not recognized
-    del_objs = Organization.objects.exclude(name__in=orgs_list_str)
-    del_count = 0
-    if len(del_objs) < 300:
-        del_count, _ = del_objs.delete()
-    print(f"Deleted {del_count} objects")
+    # del_objs = Organization.objects.exclude(name__in=orgs_list_str)
+    # del_count = 0
+    # if len(del_objs) < 300:
+    #     del_count, _ = del_objs.delete()
+    # print(f"Deleted {del_count} objects")
 
     # get all the anchor tags
     response = requests.get(url).text
