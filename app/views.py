@@ -129,7 +129,6 @@ async def update(request):
 
     # remove all the orgs in the database that are not recognized
     del_objs = Organization.objects.exclude(name__in=orgs_list_str)
-    print(len(del_objs))
     del_count = 0
     if len(del_objs) < 300:
         del_count, _ = del_objs.delete()
