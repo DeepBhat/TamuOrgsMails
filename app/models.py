@@ -4,7 +4,7 @@ from django.db.models.fields import CharField, DateField, EmailField, URLField
 # Create your models here.
 
 class Organization(models.Model):
-    name = CharField(max_length=100, unique=True)
+    name = CharField(max_length=500, unique=True)
     org_page = URLField(unique=True)
     email = EmailField()
     date_modified = DateField(auto_now=True)
