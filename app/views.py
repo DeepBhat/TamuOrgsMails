@@ -36,6 +36,8 @@ def update_database():
     orgs_list_str = "".join(orgs_list_recognized)
 
     print("Got recognized orgs...")
+    print(f"Is SASE in recognized orgs? {'Society of Asian Scientists &amp; Engineers' in orgs_list_str}")
+    print(f"Is Agri Finc in recognized orgs? {'Society of Agricultural Finance, Insurance,and Real Estate' in orgs_list_str}")
 
     # remove all the orgs in the database that are not recognized
     del_objs = Organization.objects.exclude(name__in=orgs_list_str)
@@ -58,12 +60,20 @@ def update_database():
         link = None
         if links: 
             link = links[0][:-1]
+            if '1429' in link:
+                print("found link 1429-SASE")
             name = None
             names = re.findall(r'">.*</a>', anchor_tag)
             if names:
                 name = names[0][2:-4]
-                
+                if '1429' in link:
+                    print(f"found link 1429-SASE: got name {name}")
+                # fix &amp; to &
+                if '&amp;' in name:
+                    name = name.replace("&amp;","&")
                 if name in orgs_list_str:
+                    if '1429' in link:
+                        print(f"found link 1429-SASE: name is in orgs_list_str")
                     # it is a recognized org and we have the link
                     exists = False
                     # check if the name is in database and was modified in the last 30 days.
@@ -83,6 +93,9 @@ def update_database():
                     # extract the mail address from the page
                     if mail_address := re.findall(r'"mailto:.*"', response):
                         mail_address = mail_address[0][8:-1]
+
+                        if '1429' in link:
+                            print(f"found link 1429-SASE: got mail {mail_address}")
 
                         # if mail address found, add or update the email and link
                         # depending on if it exists or not
