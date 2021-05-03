@@ -32,7 +32,7 @@ def update_database():
 
     # read the table data
     orgs_list_raw = pd.read_html(url)[0][1].tolist()
-    orgs_list_recognized = list(filter(lambda org_text: "Not Recognized" not in org_text and "Exempt from Recognition" not in org_text, orgs_list_raw))
+    orgs_list_recognized = list(filter(lambda org_text: "Not Recognized" not in org_text, orgs_list_raw))
     orgs_list_str = "".join(orgs_list_recognized)
 
     print("Got recognized orgs...")
