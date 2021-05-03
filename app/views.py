@@ -62,7 +62,9 @@ def update_database():
             names = re.findall(r'">.*</a>', anchor_tag)
             if names:
                 name = names[0][2:-4]
-                
+                # convert &amp; to &
+                if '&amp;' in name:
+                    name = name.replace("&amp;","&")
                 if name in orgs_list_str:
                     # it is a recognized org and we have the link
                     exists = False
