@@ -99,12 +99,12 @@ def update_database():
                                 org.org_page = link
                                 dirty = True
                             if dirty:
-                                print("Updating entry!")
+                                print(f"Updating entry: {name}")
                         else:
                             # if org doesnt exist create it
                             org = Organization(name = name, email = mail_address, org_page = link)
                             dirty = True
-                            print("Adding new entry!")
+                            print(f"Adding new entry: {name}")
                         
                         try:
                             # if the org has been created or modified, save it
