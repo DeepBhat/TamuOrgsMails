@@ -24,94 +24,94 @@ def index(request):
 
     return render(request, 'app/index.html', context)
 
-# @sync_to_async
-# def update_database():
-#     print("Updating database...")
-#     url = "https://stuactonline.tamu.edu/app/search/index/index/search/name?q="
+@sync_to_async
+def update_database():
+    print("Updating database...")
+    url = "https://stuactonline.tamu.edu/app/search/index/index/search/name?q="
 
 
-#     # read the table data
-#     orgs_list_raw = pd.read_html(url)[0][1].tolist()
-#     orgs_list_recognized = list(filter(lambda org_text: "Not Recognized" not in org_text and "Exempt from Recognition" not in org_text, orgs_list_raw))
-#     orgs_list_str = "".join(orgs_list_recognized)
+    # read the table data
+    orgs_list_raw = pd.read_html(url)[0][1].tolist()
+    orgs_list_recognized = list(filter(lambda org_text: "Not Recognized" not in org_text and "Exempt from Recognition" not in org_text, orgs_list_raw))
+    orgs_list_str = "".join(orgs_list_recognized)
 
-#     print("Got recognized orgs...")
+    print("Got recognized orgs...")
 
-#     # remove all the orgs in the database that are not recognized
-#     del_objs = Organization.objects.exclude(name__in=orgs_list_str)
-#     print(len(del_objs))
-#     del_count = 0
-#     if len(del_objs) < 300:
-#         del_count, _ = del_objs.delete()
-#     print(f"Deleted {del_count} objects")
+    # remove all the orgs in the database that are not recognized
+    del_objs = Organization.objects.exclude(name__in=orgs_list_str)
+    print(len(del_objs))
+    del_count = 0
+    if len(del_objs) < 300:
+        del_count, _ = del_objs.delete()
+    print(f"Deleted {del_count} objects")
 
-#     # get all the anchor tags
-#     response = requests.get(url).text
-#     soup = BeautifulSoup(response)
-#     anchor_tags = [str(anchor_tag) for anchor_tag in soup.find_all("a")]
-#     print("Got anchor tags...")
+    # get all the anchor tags
+    response = requests.get(url).text
+    soup = BeautifulSoup(response)
+    anchor_tags = [str(anchor_tag) for anchor_tag in soup.find_all("a")]
+    print("Got anchor tags...")
 
-#     # extract the link and name from the anchor tags, keeping only the recognized org links
-#     for anchor_tag in anchor_tags:
-#         # find all anchor tags and the corresponding name
-#         links = re.findall(r'(https://stuactonline.tamu.edu/app/organization/index/index/id/.*")', anchor_tag)
-#         link = None
-#         if links: 
-#             link = links[0][:-1]
-#             name = None
-#             names = re.findall(r'">.*</a>', anchor_tag)
-#             if names:
-#                 name = names[0][2:-4]
+    # extract the link and name from the anchor tags, keeping only the recognized org links
+    for anchor_tag in anchor_tags:
+        # find all anchor tags and the corresponding name
+        links = re.findall(r'(https://stuactonline.tamu.edu/app/organization/index/index/id/.*")', anchor_tag)
+        link = None
+        if links: 
+            link = links[0][:-1]
+            name = None
+            names = re.findall(r'">.*</a>', anchor_tag)
+            if names:
+                name = names[0][2:-4]
                 
-#                 if name in orgs_list_str:
-#                     # it is a recognized org and we have the link
-#                     exists = False
-#                     # check if the name is in database and was modified in the last 30 days.
-#                     # if true, skip the updation or addition. Set a flag exists
-#                     try:
-#                         org = Organization.objects.get(name = name)
-#                         exists = True
-#                         # only update if it hasnt been updated in the past 30 days
-#                         if (date.today() - org.date_modified).days <= 30:
-#                             continue
-#                     except Organization.DoesNotExist:
-#                         exists = False
+                if name in orgs_list_str:
+                    # it is a recognized org and we have the link
+                    exists = False
+                    # check if the name is in database and was modified in the last 30 days.
+                    # if true, skip the updation or addition. Set a flag exists
+                    try:
+                        org = Organization.objects.get(name = name)
+                        exists = True
+                        # only update if it hasnt been updated in the past 30 days
+                        if (date.today() - org.date_modified).days <= 30:
+                            continue
+                    except Organization.DoesNotExist:
+                        exists = False
 
-#                     # visit the link of the org to extract the email
-#                     response = requests.get(link).text
+                    # visit the link of the org to extract the email
+                    response = requests.get(link).text
 
-#                     # extract the mail address from the page
-#                     if mail_address := re.findall(r'"mailto:.*"', response):
-#                         mail_address = mail_address[0][8:-1]
+                    # extract the mail address from the page
+                    if mail_address := re.findall(r'"mailto:.*"', response):
+                        mail_address = mail_address[0][8:-1]
 
-#                         # if mail address found, add or update the email and link
-#                         # depending on if it exists or not
-#                         dirty = False
-#                         if exists:
-#                             org = Organization.objects.get(name = name)
-#                             # if either email or link has changed, update them
-#                             if org.email != mail_address:
-#                                 org.email = mail_address
-#                                 dirty = True
-#                             if org.org_page != link:
-#                                 org.org_page = link
-#                                 dirty = True
-#                             if dirty:
-#                                 print("Updating entry!")
-#                         else:
-#                             # if org doesnt exist create it
-#                             org = Organization(name = name, email = mail_address, org_page = link)
-#                             dirty = True
-#                             print("Adding new entry!")
+                        # if mail address found, add or update the email and link
+                        # depending on if it exists or not
+                        dirty = False
+                        if exists:
+                            org = Organization.objects.get(name = name)
+                            # if either email or link has changed, update them
+                            if org.email != mail_address:
+                                org.email = mail_address
+                                dirty = True
+                            if org.org_page != link:
+                                org.org_page = link
+                                dirty = True
+                            if dirty:
+                                print("Updating entry!")
+                        else:
+                            # if org doesnt exist create it
+                            org = Organization(name = name, email = mail_address, org_page = link)
+                            dirty = True
+                            print("Adding new entry!")
                         
-#                         try:
-#                             # if the org has been created or modified, save it
-#                             if dirty:
-#                                 org.save()
-#                         except IntegrityError:
-#                             print(f"email integrity error={mail_address}")
+                        try:
+                            # if the org has been created or modified, save it
+                            if dirty:
+                                org.save()
+                        except IntegrityError:
+                            print(f"email integrity error={mail_address}")
                         
-#     print("Done updating, exiting...")
+    print("Done updating, exiting...")
 
 
 def update(request):
@@ -122,7 +122,7 @@ def update(request):
 
     # read the table data
     orgs_list_raw = pd.read_html(url)[0][1].tolist()
-    orgs_list_recognized = list(filter(lambda org_text: "Not Recognized" not in org_text and "Exempt from Recognition" not in org_text, orgs_list_raw))
+    orgs_list_recognized = list(filter(lambda org_text: "Not Recognized" not in org_text, orgs_list_raw))
     orgs_list_str = "".join(orgs_list_recognized)
 
     print("Got recognized orgs...")
