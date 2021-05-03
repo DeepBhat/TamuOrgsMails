@@ -11,14 +11,21 @@
     <div class="w3-margin-top">
         <b>Note</b>: You have two options: 
     </div>
-    <ol class="w3-margin">
+    <ul class="w3-margin">
         <li>
-            Download the database in a csv file and then create a Google group to send <u>one</u> mass email. Follow the instrcutions <a href="https://www.gmass.co/blog/email-group-gmail/">here</a>.
+            Download the database in a csv file and then create a Google group to send <i>one</i> mass email.
+            <ol>
+                <li>download the csv file</li>
+                <li><a href="https://support.google.com/contacts/answer/1069522?co=GENIE.Platform%3DDesktop&hl=en#zippy=%2Cfrom-a-file">Import the csv file </a> to your Google contacts. </li>
+                <li> After the contacts have been imported, you will see a new Label in the left panel, in the form of "Imported on 5/3". Click the pencil icon next to the name and edit the name to your desired name, example Student Orgs.</li>
+                <li> Finally, compose a new email in Gmail and enter the name you chose in the previous step, example Student Orgs. Gmail will create a dropdown with the suggestion. Click on it, and write your email.</li>
+            </ol>
         </li>
         <br>
         <li class="w3-margin-bottom">
             You can also head to the mass email page to find mailto links to directly send them from the browser. However, because of a 2000 character limit to mailto links, the mass email link has to be done in batches. You will have to go through each. 
         </li>
+    </ul>
     <a href="{% url 'download' %}" class="w3-btn w3-ripple w3-red w3-margin w3-padding w3-round-large w3-animate-opacity"> Download as csv  </a>
     <a href="{% url 'mass_email' %}" class="w3-btn w3-ripple w3-red w3-margin w3-padding w3-round-large w3-animate-opacity"> Send Mass Email  </a>
 </div>
