@@ -5,17 +5,17 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup
 import re
-from datetime import date, timedelta
+from datetime import date
 from django.db.utils import IntegrityError
 import asyncio
 from asgiref.sync import sync_to_async
 import csv
-from django.db.models.functions import Lower
+from .forms import DateForm
 
 # Create your views here.
 def index(request): 
     # get all orgs
-    orgs = Organization.objects.all().order_by(Lower('name'))
+    orgs = Organization.objects.all().order_by('-date_modified')
 
     context = {
         'orgs': orgs,
@@ -36,16 +36,12 @@ def update_database():
     orgs_list_str = "".join(orgs_list_recognized)
 
     print("Got recognized orgs...")
-    print(f"Is SASE in recognized orgs? {'Society of Asian Scientists &amp; Engineers' in orgs_list_str}")
-    print(f"Is Agri Finc in recognized orgs? {'Society of Agricultural Finance, Insurance,and Real Estate' in orgs_list_str}")
 
     # remove all the orgs in the database that are not recognized
-    del_objs = Organization.objects.exclude(name__in=orgs_list_str)
-    print(len(del_objs))
-    del_count = 0
-    if len(del_objs) < 300:
-        del_count, _ = del_objs.delete()
-    print(f"Deleted {del_count} objects")
+    for org in Organization.objects.all():
+            if org.name not in orgs_list_str:
+                print(f"Deleting {org.name}")
+                Organization.delete(org)
 
     # get all the anchor tags
     response = requests.get(url).text
@@ -60,20 +56,14 @@ def update_database():
         link = None
         if links: 
             link = links[0][:-1]
-            if '1429' in link:
-                print("found link 1429-SASE")
             name = None
             names = re.findall(r'">.*</a>', anchor_tag)
             if names:
                 name = names[0][2:-4]
-                if '1429' in link:
-                    print(f"found link 1429-SASE: got name {name}")
                 # fix &amp; to &
                 if '&amp;' in name:
                     name = name.replace("&amp;","&")
                 if name in orgs_list_str:
-                    if '1429' in link:
-                        print(f"found link 1429-SASE: name is in orgs_list_str")
                     # it is a recognized org and we have the link
                     exists = False
                     # check if the name is in database and was modified in the last 30 days.
@@ -94,9 +84,6 @@ def update_database():
                     if mail_address := re.findall(r'"mailto:.*"', response):
                         mail_address = mail_address[0][8:-1]
 
-                        if '1429' in link:
-                            print(f"found link 1429-SASE: got mail {mail_address}")
-
                         # if mail address found, add or update the email and link
                         # depending on if it exists or not
                         dirty = False
@@ -110,12 +97,12 @@ def update_database():
                                 org.org_page = link
                                 dirty = True
                             if dirty:
-                                print("Updating entry!")
+                                print(f"Updating entry: {name}")
                         else:
                             # if org doesnt exist create it
                             org = Organization(name = name, email = mail_address, org_page = link)
                             dirty = True
-                            print("Adding new entry!")
+                            print(f"Adding new entry: {name}")
                         
                         try:
                             # if the org has been created or modified, save it
@@ -123,20 +110,23 @@ def update_database():
                                 org.save()
                         except IntegrityError:
                             print(f"email integrity error={mail_address}")
-                        
+           
     print("Done updating, exiting...")
 
 
 async def update(request):
-    task = asyncio.create_task(update_database())
+    asyncio.create_task(update_database())
     return HttpResponse("Your request has been acknowledged. Check back in several minutes to see the updated database.")
 
-def download_csv(request):
+def download_csv(request, date=None):
     # return the name and emails as csv file
     output = []
     response = HttpResponse(content_type='text/csv', headers={'Content-Disposition': 'attachment; filename="Student Org Emails.csv"'})
     writer = csv.writer(response)
-    orgs = Organization.objects.all()
+    if date:
+        orgs = Organization.objects.filter(date_modified=date)
+    else:
+        orgs = Organization.objects.all()
     #Header
     writer.writerow(['Name', 'Email'])
     for org in orgs:
@@ -146,8 +136,20 @@ def download_csv(request):
     return response
 
 def mass_email(request):
-    # get all orgs
-    orgs = Organization.objects.all()
+    if request.method == 'GET':
+        # get all orgs
+        orgs = Organization.objects.all()
+        # generate the clean form
+        form = DateForm()
+    elif request.method == 'POST':
+        form = DateForm(request.POST)
+        if form.is_valid():
+            date_selected = form.cleaned_data["date_selected"]
+            # filter based on date input
+            if form.cleaned_data["csv_download"]:
+                return download_csv(request=request, date=form.cleaned_data["date_selected"])
+            orgs = Organization.objects.filter(date_modified=date_selected)
+
     # generate a mass email mailto: link
     mass_email_queries = [f"mailto:?bcc="]
     
@@ -163,9 +165,14 @@ def mass_email(request):
             query_index += 1
             mass_email_queries.append(f"mailto:?bcc=")
 
+    # if mass email queries is made of empty strings, set it to false
+    if mass_email_queries[0] == "mailto:?bcc=":
+        mass_email_queries = False
+
     context = {
         'mass_email_links': mass_email_queries,
-        'count': len(mass_email_queries)
+        'count': len(mass_email_queries) if mass_email_queries else 0,
+        'form': form
     }
 
     return render(request, 'app/mass_email.html', context)
