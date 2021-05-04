@@ -4,22 +4,34 @@
     <h3> Current batch count: {{ count }} </h3>
 </div>
 
+<div class="w3-section w3-center">
+    <form action="{% url 'mass_email' %}" method="POST">
+        {% csrf_token %}
+        <span> Get orgs for: {{ form.date_selected }} </span>
+        <span class="w3-check"> {{ form.csv_download }}</span> <span>Download CSV instead</span>
+        <input type="submit" value="Submit" class="w3-btn w3-ripple w3-red w3-round-large w3-margin">
+        <a href="{% url 'mass_email' %}" class="w3-btn w3-ripple w3-red w3-round-large w3-margin-right">Clear Selection</a>
+    </form>
+    
+</div>
 
 <div class="w3-panel w3-pale-red w3-leftbar w3-border-red w3-round w3-margin">
     <p> <b>Note</b>: because of a 2000 character limit to mailto links, the mass email link has to be done in batches. You will have to go through each. 
-    Alternatively, you can download the database <a href="{% url 'download' %}">here</a> as a csv and follow the instructions <a href="https://www.gmass.co/blog/email-group-gmail/">here</a>.  
-    This will allow you to send out a mass email in one go.
-    <br>
-    <br>
     To facilitate with the batch sending, each link has a checkbox to the side. Check them to keep track of which emails you have sent.</p>
+    <p> You can also pick a date to only get the orgs that were modified or added on that day. Check 'Download CSV instead' to download the orgs as csv.
+      Click 'Clear Selection' to remove your date choice and send emails to all orgs in the database.</p>
 </div>
 
-<div class="w3-container w3-border w3-padding w3-display-middle" style="width: 70%;">
-    {% for mass_email_link in mass_email_links %}
-            <input class="w3-check" type="checkbox">
-            <a href="{{ mass_email_link }}" class="w3-btn w3-ripple w3-red w3-round-large w3-margin">  Send Mass Email: Batch {{ forloop.counter }} </a>
-            {% if forloop.counter|divisibleby:3 %}
-                <br>
-            {% endif %}
-    {% endfor %}
+<div class="w3-container w3-border w3-padding w3-margin w3-margin-left" style="width: 70%;">
+    {% if mass_email_links %}
+        {% for mass_email_link in mass_email_links %}
+                <input class="w3-check" type="checkbox">
+                <a href="{{ mass_email_link }}" class="w3-btn w3-ripple w3-red w3-round-large w3-margin">  Send Mass Email: Batch {{ forloop.counter }} </a>
+                {% if forloop.counter|divisibleby:3 %}
+                    <br>
+                {% endif %}
+        {% endfor %}
+    {% else %}
+        <h4 class="w3-center">No orgs were modified or added on this day!</h4>
+    {% endif %}
 </div>
