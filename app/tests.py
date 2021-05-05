@@ -1,6 +1,8 @@
 from django.test import TestCase
 from .models import Organization
 from django.db.models import Q
+import requests
+import re
 
 # Create your tests here.
 class InTestCase(TestCase):
@@ -34,3 +36,8 @@ class InTestCase(TestCase):
         
         orgs = Organization.objects.all()
         self.assertEqual(len(orgs),2)
+
+    def test_public_name(self):
+        response = requests.get("https://stuactonline.tamu.edu/app/organization/profile/public/id/83")
+        public_name = re.findall(r'Public Contact Name:.*Public Contact')
+        self.assertEqual(1, len(public_name))

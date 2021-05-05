@@ -80,9 +80,14 @@ def update_database():
                     # visit the link of the org to extract the email
                     response = requests.get(link).text
 
+                    
+
                     # extract the mail address from the page
                     if mail_address := re.findall(r'"mailto:.*"', response):
                         mail_address = mail_address[0][8:-1]
+
+                        # extract public name
+                        
 
                         # if mail address found, add or update the email and link
                         # depending on if it exists or not
