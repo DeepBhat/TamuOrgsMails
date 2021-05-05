@@ -71,9 +71,6 @@ def update_database():
                     try:
                         org = Organization.objects.get(name = name)
                         exists = True
-                        # only update if it hasnt been updated in the past 30 days
-                        if (date.today() - org.date_modified).days < 30:
-                            continue
                     except Organization.DoesNotExist:
                         exists = False
 
