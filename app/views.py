@@ -72,7 +72,7 @@ def update_database():
                         org = Organization.objects.get(name = name)
                         exists = True
                         # only update if it hasnt been updated in the past 30 days
-                        if (date.today() - org.date_modified).days <= 30:
+                        if (date.today() - org.date_modified).days < 30:
                             continue
                     except Organization.DoesNotExist:
                         exists = False
@@ -87,7 +87,8 @@ def update_database():
                         mail_address = mail_address[0][8:-1]
 
                         # extract public name
-                        
+                        link_soup = BeautifulSoup(response, features="lxml").get_text()
+                        public_name = re.findall(r'Public Contact Name:.*\n', link_soup)[0][20:-1]
 
                         # if mail address found, add or update the email and link
                         # depending on if it exists or not
@@ -98,14 +99,20 @@ def update_database():
                             if org.email != mail_address:
                                 org.email = mail_address
                                 dirty = True
+
                             if org.org_page != link:
                                 org.org_page = link
                                 dirty = True
+
+                            if org.contact_name != public_name:
+                                org.contact_name = public_name
+                                dirty = True
+
                             if dirty:
                                 print(f"Updating entry: {name}")
                         else:
                             # if org doesnt exist create it
-                            org = Organization(name = name, email = mail_address, org_page = link)
+                            org = Organization(name = name, email = mail_address, org_page = link, contact_name = public_name)
                             dirty = True
                             print(f"Adding new entry: {name}")
                         
@@ -133,9 +140,9 @@ def download_csv(request, date=None):
     else:
         orgs = Organization.objects.all()
     #Header
-    writer.writerow(['Name', 'Email'])
+    writer.writerow(['Name', 'Email', 'Contact Name', 'Last Modified'])
     for org in orgs:
-        output.append([org.name, org.email])
+        output.append([org.name, org.email, org.contact_name, org.date_modified])
     #CSV Data
     writer.writerows(output)
     return response

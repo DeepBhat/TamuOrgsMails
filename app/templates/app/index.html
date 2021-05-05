@@ -35,21 +35,24 @@
 </div>
 
 {% if orgs %}
-    <table class="w3-table-all w3-hoverable w3-border w3-margin w3-animate-opacity" style="width:70%;">
-        <tr class="w3-red">
-            <th> # </th>
-            <th> Name </th>
-            <th> Email </th>
-            <th> Last Modified </th>
-        </tr>
-
-        {% for org in orgs %}
-            <tr>
-                <td> {{ forloop.counter }} </td>
-                <td> <a href="{{ org.org_page }}"> {{ org.name }} </a> </td>
-                <td> <a href="mailto:{{ org.email }}"> {{ org.email }} </a> </td>
-                <td> {{ org.date_modified }} </a> </td>
+    <div class="w3-responsive">
+        <table class="w3-table-all w3-padding w3-hoverable w3-border w3-margin w3-animate-opacity" style="table-layout:fixed; width: 80%; ">
+            <tr class="w3-red w3-padding">
+                <th style="width:100px;"> # </th>
+                <th style="width:400px;"> Name </th>
+                <th style="width:400px;"> Email </th>
+                <th> Contact Name </th>
+                <th> Last Modified </th>
             </tr>
-        {% endfor %}
-    </table>
+            {% for org in orgs %}
+                <tr class="w3-padding">
+                    <td class="w3-padding"> {{ forloop.counter }} </td>
+                    <td class="w3-padding"> <a href="{{ org.org_page }}"> {{ org.name }} </a> </td>
+                    <td class="w3-padding"> <a href="mailto:{{ org.email }}"> {{ org.email }} </a> </td>
+                    <td class="w3-padding"> {{ org.contact_name }} </td>
+                    <td class="w3-padding"> {{ org.date_modified }} </td>
+                </tr>
+            {% endfor %}
+        </table>
+    </div>
 {% endif %}

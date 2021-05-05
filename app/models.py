@@ -8,7 +8,7 @@ class Organization(models.Model):
     org_page = URLField(unique=True)
     email = EmailField()
     date_modified = DateField(auto_now=True)
-    contact_name = CharField(max_length=100)
+    contact_name = CharField(max_length=100, default="")
 
     def __str__(self) -> str:
         return f"{self.name}: {self.email}"

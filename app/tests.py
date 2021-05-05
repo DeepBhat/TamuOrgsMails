@@ -3,6 +3,7 @@ from .models import Organization
 from django.db.models import Q
 import requests
 import re
+from bs4 import BeautifulSoup
 
 # Create your tests here.
 class InTestCase(TestCase):
@@ -12,32 +13,10 @@ class InTestCase(TestCase):
         Organization.objects.create(name="SASE",org_page="www.google.com/3",email="yeet@gmail.com")
 
 
-    def test_in_works(self):
-        mass_str = "12th man other org SASE"
-        org = Organization.objects.first()
-        self.assertTrue(org.name in mass_str)
-        filtered_orgs = Organization.objects.exclude(~Q(name__in=mass_str))
-        self.assertGreater(len(filtered_orgs), 0)
-        for org in filtered_orgs:
-            self.assertFalse(org.name in mass_str)
-
-    def test_in_works_2(self):
-        mass_str = "12th man other SASE"
-        filtered_orgs = Organization.objects.filter(name__in=mass_str)
-        self.assertGreater(len(filtered_orgs), 0)
-        for org in filtered_orgs:
-            self.assertTrue(org.name in mass_str)
-        
-    def test_deletion(self):
-        mass_str = "12th man other SASE"
-        for org in Organization.objects.all():
-            if org.name not in mass_str:
-                Organization.delete(org)
-        
-        orgs = Organization.objects.all()
-        self.assertEqual(len(orgs),2)
-
     def test_public_name(self):
-        response = requests.get("https://stuactonline.tamu.edu/app/organization/profile/public/id/83")
-        public_name = re.findall(r'Public Contact Name:.*Public Contact')
-        self.assertEqual(1, len(public_name))
+        response = BeautifulSoup(requests.get("https://stuactonline.tamu.edu/app/organization/profile/public/id/83").text, features="lxml").get_text()
+        public_name = re.findall(r'Public Contact Name:.*\n', response)[0][20:-1]
+
+        self.assertEqual("Bryan Carbajal", public_name)
+
+        
