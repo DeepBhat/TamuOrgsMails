@@ -1,0 +1,8 @@
+<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+{% extends 'admin/change_list.html' %}
+
+{% block object-tools %}
+    <a class="w3-button w3-round" href="import-csv/">Import CSV</a>
+    <br />
+    {{ block.super }}
+{% endblock %}
