@@ -13,6 +13,13 @@ class Organization(models.Model):
     def __str__(self) -> str:
         return f"{self.name}: {self.email}"
 
+
+class Exclusion(models.Model):
+    text = CharField(max_length=100,unique=True)
+
+    def __str__(self) -> str:
+        return self.text
+
     
 
 

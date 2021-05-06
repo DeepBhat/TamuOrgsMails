@@ -1,5 +1,5 @@
 from django.shortcuts import render
-from .models import Organization
+from .models import Organization, Exclusion
 from django.http import HttpResponse
 import pandas as pd
 import requests
@@ -132,14 +132,33 @@ def download_csv(request, date=None):
     output = []
     response = HttpResponse(content_type='text/csv', headers={'Content-Disposition': 'attachment; filename="Student Org Emails.csv"'})
     writer = csv.writer(response)
+
     if date:
         orgs = Organization.objects.filter(date_modified=date)
     else:
         orgs = Organization.objects.all()
+
     #Header
-    writer.writerow(['Name', 'Email', 'Contact Name', 'Last Modified'])
+    writer.writerow(['Name', 'Email', 'Last Modified', 'Full Name', 'Split Names'])
     for org in orgs:
-        output.append([org.name, org.email, org.contact_name, org.date_modified])
+        # get the the contact name
+        contact_name: str = org.contact_name
+        # split it and filter out the exclusion words
+        contact_names_split = [contact_name_part for contact_name_part in re.split(r',|\:|/|&|\-|\s|\(|\)',contact_name) if contact_name_part not in Exclusion.objects.all().values_list('text',flat=True) and contact_name_part and not re.match(r'\s+',contact_name_part)]
+        if org.name == 'Aggie Royals':
+            print(contact_names_split)
+        # # remove all characters in the name from the exclusion set
+        # for exclusion_item in Exclusion.objects.all():
+        #     for contact_name_part in contact_names_split:
+        #         if exclusion_item.text == contact_name_part:
+        #             contact_name = contact_name.replace(exclusion_item.text, " ")
+
+        # split the name into strings
+        # split_list = contact_name.split(" ")
+            
+        # append the values, including all the names in the split list
+        output.append([org.name, org.email, org.date_modified, org.contact_name, *contact_names_split])
+
     #CSV Data
     writer.writerows(output)
     return response
@@ -150,13 +169,17 @@ def mass_email(request):
         orgs = Organization.objects.all()
         # generate the clean form
         form = DateForm()
+
     elif request.method == 'POST':
         form = DateForm(request.POST)
+
         if form.is_valid():
             date_selected = form.cleaned_data["date_selected"]
             # filter based on date input
+
             if form.cleaned_data["csv_download"]:
                 return download_csv(request=request, date=form.cleaned_data["date_selected"])
+
             orgs = Organization.objects.filter(date_modified=date_selected)
 
     # generate a mass email mailto: link
